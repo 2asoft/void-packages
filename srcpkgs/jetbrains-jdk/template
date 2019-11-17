@@ -1,0 +1,80 @@
+# Template file for 'jetbrains-jdk-bin'
+pkgname=jetbrains-jdk-bin
+version=11.0.5b608
+revision=1
+_jdk_ver=${version%b*}
+_jdk_build=${version#*b}
+archs="x86_64"
+wrksrc="JetBrainsRuntime-jb${_jdk_ver//\./_}-b${_jdk_build}"
+hostmakedepends="pkg-config automake autoconf cpio unzip zip ca-certificates libressl zlib-devel make-ca wget"
+makedepends="libXrender-devel libXtst-devel libXt-devel libXrandr-devel giflib-devel libjpeg-turbo-devel cups-devel freetype-devel alsa-lib-devel fontconfig-devel zlib-devel lcms2-devel"
+short_desc="JetBrains Java 11 JDK"
+maintainer="Anton Afanasyev <anton@doubleasoftware.com>"
+license="GPL-2.0-only, Classpath-exception-2.0"
+homepage="https://github.com/JetBrains/JetBrainsRuntime"
+_jdk_ver=${version%b*}
+_jdk_build=${version#*b}
+#distfiles="https://dl.bintray.com/jetbrains/intellij-jbr/jbrsdk-${_jdk_ver//\./_}-linux-x64-b${_jdk_build}.tar.gz"
+distfiles="https://github.com/JetBrains/JetBrainsRuntime/archive/jb${_jdk_ver//\./_}-b${_jdk_build}.tar.gz"
+checksum=332a0ac6598049f06105f706a0ec7e7eb31b66c9ef6c94eec979395cb52a77dc
+fetch_cmd="wget"
+nopie=yes
+
+# Build is still parallel, but don't use -jN.
+disable_parallel_build=yes
+
+build_style=gnu-configure
+make_build_args="images $(vopt_if docs docs)"
+build_options="docs"
+make_check_target="test-hotspot-gtest"
+configure_args="
+ --disable-warnings-as-errors
+ --prefix=${XBPS_DESTDIR}/${XBPS_CROSS_TRIPLET}/${pkgname}-${version}/usr/lib
+ --enable-unlimited-crypto
+ --with-zlib=system
+ --with-libjpeg=system
+ --with-giflib=system
+ --with-libpng=system
+ --with-lcms=system
+ --with-jtreg=no
+ --with-version-build=${version}
+ --with-vendor-name="Void"
+ --with-vendor-url="https://voidlinux.org/"
+ --with-vendor-bug-url="https://github.com/void-linux/void-packages/issues"
+ --with-vendor-vm-bug-url="https://github.com/void-linux/void-packages/issues""
+
+# Build is still parallel, but don't use -jN.
+disable_parallel_build=yes
+
+if [ "$XBPS_ARCH" = "x86_64" ]; then
+	hostmakedepends+=" openjdk11-bin"
+	configure_args+=" --with-boot-jdk=/usr/lib/jvm/openjdk11-bin"
+else
+	broken="No suitable bootstrap binary found"
+fi
+
+do_configure() {
+	CFLAGS=${CFLAGS/-D_FORTIFY_SOURCE=2/}
+	CXXFLAGS=${CXXFLAGS/-D_FORTIFY_SOURCE=2/}
+	configure_args=${configure_args/--with-libtool-sysroot=\/usr\/[a-z0-9]*-linux-[a-z]*/}
+	if [ "$XBPS_CCACHE" ] && [ -z "$CROSS_BUILD" ]; then
+		configure_args+=" --enable-ccache"
+		CC="/usr/bin/cc"
+		CXX="/usr/bin/c++"
+	fi
+	sh ./configure ${configure_args} --with-extra-cflags="$CFLAGS" --with-extra-cxxflags="$CXXFLAGS" --with-extra-ldflags="$LDFLAGS"
+}
+
+do_install() {
+	TARGET_PATH="usr/lib/jvm/jbrsdk"
+
+	vmkdir ${TARGET_PATH}
+
+	vcopy bin ${TARGET_PATH}
+	vcopy conf ${TARGET_PATH}
+	vcopy include ${TARGET_PATH}
+	vcopy jmods ${TARGET_PATH}
+	vcopy legal ${TARGET_PATH}
+	vcopy lib ${TARGET_PATH}
+	vcopy release ${TARGET_PATH}
+}
