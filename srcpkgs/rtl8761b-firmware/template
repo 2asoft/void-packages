@@ -1,0 +1,18 @@
+# Template file for 'rtl8761b-firmware'
+pkgname=rtl8761b-firmware
+version=20201202
+revision=1
+wrksrc="${version}_LINUX_BT_DRIVER"
+archs="*"
+short_desc="Realtek bluetooth modules for RTL8761b USB based devices"
+maintainer="Anton Afanasyev <anton@doubleasoftware.com>"
+license="unknown"
+homepage="https://www.xmpow.com/pages/download"
+distfiles="https://mpow.s3-us-west-1.amazonaws.com/${version}_mpow_BH456A_driver+for+Linux.7z"
+checksum=25de05daaecbc698504e3b87f14cf24dd6cec97551ce3f2b720f5e559919d98b
+repository=nonfree
+
+do_install() {
+	vinstall rtkbt-firmware/lib/firmware/rtl8761bu_fw 644 usr/lib/firmware/rtl_bt rtl8761b_fw.bin
+	vinstall rtkbt-firmware/lib/firmware/rtl8761bu_config 644 usr/lib/firmware/rtl_bt rtl8761b_config.bin
+}
