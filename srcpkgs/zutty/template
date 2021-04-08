@@ -1,0 +1,21 @@
+# Template file for 'zutty'
+pkgname=zutty
+version=0.8
+revision=1
+build_style=waf3
+hostmakedepends="pkg-config"
+makedepends="freetype-devel libXmu-devel libglvnd-devel"
+short_desc="X terminal emulator rendering through OpenGL ES Compute Shaders"
+maintainer="Anton Afanasyev <anton@doubleasoftware.com>"
+license="GPL-3"
+homepage="https://tomscii.sig7.se/zutty/"
+distfiles="https://github.com/tomszilagyi/${pkgname}/archive/refs/tags/${version}.tar.gz"
+checksum=f4e2724cd6378127e062d13dfc864666cda5a8e10a3427f1a646455a5d31955f
+
+do_check() {
+	./waf test
+}
+
+post_install() {
+	vlicense LICENSE
+}
